@@ -10,19 +10,39 @@ namespace PN
     {
         public override void Run()
         {
+            IsAdjustRadarForGunTurn = true;
+
             while (true)
             {
-                TurnRadarLeft(-45);
+                TurnRadarRight(45);
             }
         }
-
+    
         public override void OnScannedRobot(ScannedRobotEvent e)
         {
+            // Turn the tank in order to shoot.
             TurnRight(e.Bearing);
+
             // We fire the gun with bullet power = 1
             Fire(1);
 
-            // By default, the onScannedRobot() method has the lowest event priority of all the event handlers in Robocode, so it is the last one to be triggered each tick.
+            // Normalize values if necessary.
+            var radarHeading = RadarHeading;
+            var heading = Heading;
+            if (heading < 45 && radarHeading > 315)
+            {
+                radarHeading -= 360;
+            } else if(radarHeading < 45 && heading > 315)
+            {
+                heading -= 360;
+            }
+            
+            // Turn radar left when we need to.
+            if (radarHeading > heading)
+            {
+                var delta = radarHeading - heading;
+                TurnRadarLeft(delta + 22.5);
+            }
         }
     }
 }
