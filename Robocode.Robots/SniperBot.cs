@@ -64,16 +64,15 @@ namespace PN
             }
             Console.WriteLine("Heading: " + Heading + ". RadarHeading: " + RadarHeading + ". e.Bearing: " + e.Bearing + ". HeadingTarget: " + headingTarget);
 
-            // todo: fix normalization bug.
-            //// Normalize values if necessary.
-            //if (headingTarget < 45 && radarHeading > 315)
-            //{
-            //    radarHeading -= 360;
-            //}
-            //else if (radarHeading < 45 && headingTarget > 315)
-            //{
-            //    headingTarget -= 360;
-            //}
+            // Normalize values if necessary.
+            if (headingTarget < 45 && radarHeading > 315)
+            {
+                radarHeading -= 360;
+            }
+            else if (radarHeading < 45 && headingTarget > 315)
+            {
+                headingTarget -= 360;
+            }
 
             // Turn radar left when we need to.
             if (radarHeading > headingTarget)
@@ -101,7 +100,7 @@ namespace PN
         private void OnEnemyBulletFired(object sender, Events.BulletFiredEvent e)
         {
             Console.WriteLine("Enemy bullet fired!");
-            SetAhead(50);
+            SetAhead(100);
             SetTurnRight(90);
             Execute();
         }
