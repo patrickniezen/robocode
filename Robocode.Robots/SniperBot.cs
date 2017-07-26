@@ -36,7 +36,6 @@ namespace PN
             {
                 if(RadarTurnRemaining == 0.0)
                 {
-                    Console.WriteLine("Turning another " + RADAR_TURN_MAX_DEGREES);
                     SetTurnRadarRight(RADAR_TURN_MAX_DEGREES);
                 }
             }
@@ -44,12 +43,9 @@ namespace PN
 
         public override void OnScannedRobot(ScannedRobotEvent e)
         {
-            Console.WriteLine("Robot scanned");
-
             // Normalize values if necessary.
             var radarHeading = RadarHeading;
             var headingTarget = (Heading + e.Bearing) % 360;
-            Console.WriteLine("Heading: " + Heading + ". RadarHeading: " + RadarHeading + ". e.Bearing: " + e.Bearing + ". HeadingTarget: " + headingTarget);
             if (headingTarget < 45 && radarHeading > 315)
             {
                 radarHeading -= 360;
@@ -64,7 +60,6 @@ namespace PN
             {
                 // Calculate the degrees between the radar and the target.
                 var delta = radarHeading - headingTarget;
-                Console.WriteLine("Delta: " + delta);
 
                 // Center the radar on the target.
                 delta += RADAR_TURN_MAX_DEGREES / 2;
@@ -73,7 +68,6 @@ namespace PN
                 // just turn right a bit less the next Run().
                 if (delta > RADAR_TURN_MAX_DEGREES) {
                     _nextRadarTurnDegrees = RADAR_TURN_MAX_DEGREES - (delta - RADAR_TURN_MAX_DEGREES);
-                    Console.WriteLine("Next radar turns degrees: " + _nextRadarTurnDegrees);
                     delta = RADAR_TURN_MAX_DEGREES;
                 }
 
