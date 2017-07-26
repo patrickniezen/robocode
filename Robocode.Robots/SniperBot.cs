@@ -20,11 +20,6 @@ namespace PN
             _enemy.BulletFired += OnEnemyBulletFired;
         }
 
-        private void OnEnemyBulletFired(object sender, Events.BulletFiredEvent e)
-        {
-            Console.WriteLine("Enemy fired!");
-        }
-
         public override void Run()
         {
             IsAdjustGunForRobotTurn = true;
@@ -33,7 +28,6 @@ namespace PN
             while (true)
             {
                 TurnRadar();
-
                 Execute();
             }
         }
@@ -49,6 +43,7 @@ namespace PN
             {
                 if(RadarTurnRemaining == 0.0)
                 {
+                    Console.WriteLine("Turning another " + RADAR_TURN_MAX_DEGREES);
                     SetTurnRadarRight(RADAR_TURN_MAX_DEGREES);
                 }
             }
@@ -56,26 +51,36 @@ namespace PN
 
         public override void OnScannedRobot(ScannedRobotEvent e)
         {
+            Console.WriteLine("Robot Scanned");
+
             // Update enemy information
             _enemy.Energy = e.Energy;
 
-            // Normalize values if necessary.
             var radarHeading = RadarHeading;
             var headingTarget = (Heading + e.Bearing) % 360;
-            if (headingTarget < 45 && radarHeading > 315)
+            if (headingTarget < 0)
             {
-                radarHeading -= 360;
+                headingTarget = 360 + headingTarget;
             }
-            else if (radarHeading < 45 && headingTarget > 315)
-            {
-                headingTarget -= 360;
-            }
+            Console.WriteLine("Heading: " + Heading + ". RadarHeading: " + RadarHeading + ". e.Bearing: " + e.Bearing + ". HeadingTarget: " + headingTarget);
+
+            // todo: fix normalization bug.
+            //// Normalize values if necessary.
+            //if (headingTarget < 45 && radarHeading > 315)
+            //{
+            //    radarHeading -= 360;
+            //}
+            //else if (radarHeading < 45 && headingTarget > 315)
+            //{
+            //    headingTarget -= 360;
+            //}
 
             // Turn radar left when we need to.
             if (radarHeading > headingTarget)
             {
                 // Calculate the degrees between the radar and the target.
                 var delta = radarHeading - headingTarget;
+                Console.WriteLine("Delta: " + delta);
 
                 // Center the radar on the target.
                 delta += RADAR_TURN_MAX_DEGREES / 2;
@@ -84,12 +89,21 @@ namespace PN
                 // just turn right a bit less the next Run().
                 if (delta > RADAR_TURN_MAX_DEGREES) {
                     _nextRadarTurnDegrees = RADAR_TURN_MAX_DEGREES - (delta - RADAR_TURN_MAX_DEGREES);
+                    Console.WriteLine("Next radar turns degrees: " + _nextRadarTurnDegrees);
                     delta = RADAR_TURN_MAX_DEGREES;
                 }
 
                 SetTurnRadarLeft(delta);
                 Execute();
             }
+        }
+        
+        private void OnEnemyBulletFired(object sender, Events.BulletFiredEvent e)
+        {
+            Console.WriteLine("Enemy bullet fired!");
+            SetAhead(50);
+            SetTurnRight(90);
+            Execute();
         }
     }
 }
