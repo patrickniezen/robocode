@@ -12,6 +12,19 @@ namespace PN
         const double RADAR_TURN_MAX_DEGREES = 45.00;
         private double? _nextRadarTurnDegrees = null;
 
+        private EnemyBot _enemy;
+
+        public SniperBot()
+        {
+            _enemy = new EnemyBot();
+            _enemy.BulletFired += OnEnemyBulletFired;
+        }
+
+        private void OnEnemyBulletFired(object sender, Events.BulletFiredEvent e)
+        {
+            Console.WriteLine("Enemy fired!");
+        }
+
         public override void Run()
         {
             IsAdjustGunForRobotTurn = true;
@@ -43,6 +56,9 @@ namespace PN
 
         public override void OnScannedRobot(ScannedRobotEvent e)
         {
+            // Update enemy information
+            _enemy.Energy = e.Energy;
+
             // Normalize values if necessary.
             var radarHeading = RadarHeading;
             var headingTarget = (Heading + e.Bearing) % 360;
