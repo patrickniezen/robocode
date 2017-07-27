@@ -1,5 +1,6 @@
 ﻿using PN.Helpers;
 using Robocode;
+using Robocode.Util;
 using System;
 
 namespace PN
@@ -12,6 +13,7 @@ namespace PN
     {
         const double RADAR_TURN_MAX_DEGREES = 45.00;
         private double? _nextRadarTurnDegrees = null;
+        private bool _isMovingToCenter = true;
 
         private EnemyBot _enemy;
 
@@ -29,6 +31,7 @@ namespace PN
             
             while (true)
             {
+                Move();
                 TurnRadar();
                 Execute();
             }
@@ -49,6 +52,29 @@ namespace PN
                     SetTurnRadarRight(RADAR_TURN_MAX_DEGREES);
                 }
             }
+        }
+
+        private void Move()
+        {
+            if(!_isMovingToCenter)
+            {
+                return;
+            }
+
+            var centerX = BattleFieldWidth / 2;
+            var centerY = BattleFieldHeight / 2;
+
+            // Calculate when to stop.
+            if(Math.Abs(centerX - X) < 5 && Math.Abs(centerY - Y) < 5)
+            {
+                _isMovingToCenter = false;
+                return;
+            }
+            
+            // Move a bit to the center.
+            double centerAngle = Math.Atan2(centerX - X, centerY - Y);
+            SetTurnRightRadians(Utils.NormalRelativeAngle(centerAngle - HeadingRadians));
+            SetAhead(100);
         }
 
         public override void OnScannedRobot(ScannedRobotEvent e)
