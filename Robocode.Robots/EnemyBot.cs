@@ -8,6 +8,7 @@ namespace PN
         private double _energy;
 
         public event EventHandler<BulletFiredEvent> BulletFired;
+        public event EventHandler<LocationChangedEvent> LocationChanged;
 
         public EnemyBot()
         {
@@ -27,6 +28,27 @@ namespace PN
                     OnBulletFired(new BulletFiredEvent());
                 }
             }
+        }
+        public double X { get; private set; }
+        public double Y { get; private set; }
+
+        public void SetLocation(double newX, double newY)
+        {
+            var oldX = X;
+            var oldY = Y;
+            
+            X = newX;
+            Y = newY;
+
+            if(newX != oldX || newY != oldY)
+            {
+                OnLocationChanged(new LocationChangedEvent());
+            }
+        }
+
+        private void OnLocationChanged(LocationChangedEvent e)
+        {
+            LocationChanged?.Invoke(this, e);
         }
 
         private void OnBulletFired(BulletFiredEvent e)

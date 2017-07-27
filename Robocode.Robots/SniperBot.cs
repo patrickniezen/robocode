@@ -1,4 +1,5 @@
-﻿using Robocode;
+﻿using PN.Helpers;
+using Robocode;
 using System;
 
 namespace PN
@@ -18,8 +19,9 @@ namespace PN
         {
             _enemy = new EnemyBot();
             _enemy.BulletFired += OnEnemyBulletFired;
+            _enemy.LocationChanged += OnEnemyLocationChanged;
         }
-
+        
         public override void Run()
         {
             IsAdjustGunForRobotTurn = true;
@@ -52,10 +54,8 @@ namespace PN
         public override void OnScannedRobot(ScannedRobotEvent e)
         {
             Console.WriteLine("Robot Scanned");
-
-            // Update enemy information
-            _enemy.Energy = e.Energy;
-
+            
+            // Calculate the heading of the scanned robot in degrees.
             var radarHeading = RadarHeading;
             var headingTarget = (Heading + e.Bearing) % 360;
             if (headingTarget < 0)
@@ -63,6 +63,17 @@ namespace PN
                 headingTarget = 360 + headingTarget;
             }
             Console.WriteLine("Heading: " + Heading + ". RadarHeading: " + RadarHeading + ". e.Bearing: " + e.Bearing + ". HeadingTarget: " + headingTarget);
+
+            // Calculate the angle to the scanned robot.
+            var angle = MathHelper.DegreeToRadian(headingTarget);
+
+            // Calculate the coordinates of the robot.
+            var enemyX = X + Math.Sin(angle) * e.Distance;
+            var enemyY = Y + Math.Cos(angle) * e.Distance;
+
+            // Update enemy information
+            _enemy.Energy = e.Energy;
+            _enemy.SetLocation(enemyX, enemyY);
 
             // Normalize values if necessary.
             if (headingTarget < 45 && radarHeading > 315)
@@ -103,6 +114,11 @@ namespace PN
             SetAhead(100);
             SetTurnRight(90);
             Execute();
+        }
+
+        private void OnEnemyLocationChanged(object sender, Events.LocationChangedEvent e)
+        {
+            Console.WriteLine("Enemy location changed: X=" + _enemy.X + ";Y=" + _enemy.Y);
         }
     }
 }
