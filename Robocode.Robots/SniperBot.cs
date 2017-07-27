@@ -12,6 +12,7 @@ namespace PN
     public class SniperBot : AdvancedRobot
     {
         const double RADAR_TURN_MAX_DEGREES = 45.00;
+        const double MAX_DISTANCE_ENEMY_TOO_CLOSE = 300.00;
         private double? _nextRadarTurnDegrees = null;
         private bool _isMovingToCenter = true;
 
@@ -64,8 +65,8 @@ namespace PN
             var centerX = BattleFieldWidth / 2;
             var centerY = BattleFieldHeight / 2;
 
-            // Calculate when to stop.
-            if(Math.Abs(centerX - X) < 5 && Math.Abs(centerY - Y) < 5)
+            // Calculate when to stop moving to the center.
+            if(Math.Abs(centerX - X) < 50 && Math.Abs(centerY - Y) < 50)
             {
                 _isMovingToCenter = false;
                 return;
@@ -91,7 +92,7 @@ namespace PN
             Console.WriteLine("Heading: " + Heading + ". RadarHeading: " + RadarHeading + ". e.Bearing: " + e.Bearing + ". HeadingTarget: " + headingTarget);
 
             // Calculate the angle to the scanned robot.
-            var angle = MathHelper.DegreeToRadian(headingTarget);
+            var angle = Utils.ToRadians(headingTarget);
 
             // Calculate the coordinates of the robot.
             var enemyX = X + Math.Sin(angle) * e.Distance;
@@ -100,6 +101,7 @@ namespace PN
             // Update enemy information
             _enemy.Energy = e.Energy;
             _enemy.SetLocation(enemyX, enemyY);
+            _enemy.BearingToTarget = e.Bearing;
 
             // Normalize values if necessary.
             if (headingTarget < 45 && radarHeading > 315)
@@ -133,18 +135,44 @@ namespace PN
                 Execute();
             }
         }
-        
+
+        public override void OnHitWall(HitWallEvent evnt)
+        {
+            _isMovingToCenter = true;
+        }
+
         private void OnEnemyBulletFired(object sender, Events.BulletFiredEvent e)
         {
             Console.WriteLine("Enemy bullet fired!");
-            SetAhead(100);
-            SetTurnRight(90);
+
+            var distance = 100;
+
+            // If we're too close to the enemy, move away.
+            var distanceToEnemy = MathHelper.CalculateDistanceBetweenCoordinates(X, Y, _enemy.X, _enemy.Y);
+            if(distanceToEnemy < MAX_DISTANCE_ENEMY_TOO_CLOSE)
+            {
+                if(_enemy.BearingToTarget < 90 && _enemy.BearingToTarget > -90)
+                {
+                    distance = -distance;
+                }
+            }
+
+            SetAhead(distance);
             Execute();
         }
 
         private void OnEnemyLocationChanged(object sender, Events.LocationChangedEvent e)
         {
             Console.WriteLine("Enemy location changed: X=" + _enemy.X + ";Y=" + _enemy.Y);
+
+            if(_isMovingToCenter)
+            {
+                return;
+            }
+
+            // Always face sideways.
+            var turnAngleInDegrees = Math.Abs(_enemy.BearingToTarget) - 90;
+            SetTurnRight(turnAngleInDegrees);
         }
     }
 }
