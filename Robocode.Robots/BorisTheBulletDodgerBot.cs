@@ -165,15 +165,27 @@ namespace PN
         private void OnEnemyLocationChanged(object sender, Events.LocationChangedEvent e)
         {
             Console.WriteLine("Enemy location changed: X=" + _enemy.X + ";Y=" + _enemy.Y);
-
-            if(_isMovingToCenter)
+            Console.WriteLine("Bearing: " + _enemy.BearingToTarget);
+            
+            // Always turn the gun towards the target.
+            var gunBearing = Heading - GunHeading + _enemy.BearingToTarget;
+            if(gunBearing > 180)
             {
-                return;
+                SetTurnGunLeft(360 - gunBearing);
+
+            } else
+            {
+                SetTurnGunRight(gunBearing);
             }
 
-            // Always face sideways.
-            var turnAngleInDegrees = Math.Abs(_enemy.BearingToTarget) - 90;
-            SetTurnRight(turnAngleInDegrees);
+            // Only face sideways when we're done moving to the center.
+            if (!_isMovingToCenter)
+            {
+                var turnAngleInDegrees = Math.Abs(_enemy.BearingToTarget) - 90;
+                SetTurnRight(turnAngleInDegrees);
+            }
+
+            Execute();
         }
     }
 }
