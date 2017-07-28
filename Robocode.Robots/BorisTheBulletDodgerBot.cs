@@ -12,8 +12,10 @@ namespace PN
     /// </summary>
     public class BorisTheBulletDodgerBot : AdvancedRobot
     {
-        const double RADAR_TURN_MAX_DEGREES = 45.00;
-        const double MAX_DISTANCE_ENEMY_TOO_CLOSE = 300.00;
+        const double RADAR_TURN_MAX_DEGREES = 45;
+        const double MAX_DISTANCE_ENEMY_TOO_CLOSE = 300;
+        const double MIN_DISTANCE_ENEMY_FIRE_GUN = 100;
+
         private double? _nextRadarTurnDegrees = null;
         private bool _isMovingToCenter = true;
 
@@ -35,6 +37,7 @@ namespace PN
             {
                 Move();
                 TurnRadar();
+                FireGun();
                 Execute();
             }
         }
@@ -77,6 +80,17 @@ namespace PN
             double centerAngle = Math.Atan2(centerX - X, centerY - Y);
             SetTurnRightRadians(Utils.NormalRelativeAngle(centerAngle - HeadingRadians));
             SetAhead(100);
+        }
+
+        private void FireGun()
+        {
+            TurnGunToTarget();
+
+            var distanceToEnemy = MathHelper.CalculateDistanceBetweenCoordinates(X, Y, _enemy.X, _enemy.Y);
+            if (distanceToEnemy < MIN_DISTANCE_ENEMY_FIRE_GUN)
+            {
+                SetFireBullet(2.0);
+            }
         }
 
         public override void OnScannedRobot(ScannedRobotEvent e)
@@ -166,17 +180,9 @@ namespace PN
         {
             Console.WriteLine("Enemy location changed: X=" + _enemy.X + ";Y=" + _enemy.Y);
             Console.WriteLine("Bearing: " + _enemy.BearingToTarget);
-            
-            // Always turn the gun towards the target.
-            var gunBearing = Heading - GunHeading + _enemy.BearingToTarget;
-            if(gunBearing > 180)
-            {
-                SetTurnGunLeft(360 - gunBearing);
 
-            } else
-            {
-                SetTurnGunRight(gunBearing);
-            }
+            // Always turn the gun towards the target.
+            TurnGunToTarget();
 
             // Only face sideways when we're done moving to the center.
             if (!_isMovingToCenter)
@@ -186,6 +192,20 @@ namespace PN
             }
 
             Execute();
+        }
+
+        private void TurnGunToTarget()
+        {
+            var gunBearing = Heading - GunHeading + _enemy.BearingToTarget;
+            if (gunBearing > 180)
+            {
+                SetTurnGunLeft(360 - gunBearing);
+
+            }
+            else
+            {
+                SetTurnGunRight(gunBearing);
+            }
         }
     }
 }
