@@ -87,7 +87,7 @@ namespace PN
             TurnGunToTarget();
 
             var distanceToEnemy = MathHelper.CalculateDistanceBetweenCoordinates(X, Y, _enemy.X, _enemy.Y);
-            if (distanceToEnemy < MIN_DISTANCE_ENEMY_FIRE_GUN)
+            if (distanceToEnemy < MIN_DISTANCE_ENEMY_FIRE_GUN || _enemy.Energy <= 0)
             {
                 SetFireBullet(2.0);
             }
@@ -159,7 +159,7 @@ namespace PN
         private void OnEnemyBulletFired(object sender, Events.BulletFiredEvent e)
         {
             Console.WriteLine("Enemy bullet fired!");
-
+            
             var distance = 100;
 
             // If we're too close to the enemy, move away.
